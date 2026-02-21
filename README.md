@@ -12,7 +12,7 @@ A heads-up display for Claude Code. See your rate limits, model, context usage, 
 - **💰 Cost** — session spend so far
 - **📊 Context** — how much of the context window is used
 
-The pace marker (┃) on the usage bars shows where you *should* be if you spread usage evenly across the window. Green arrow (▲) means you're ahead of pace, red arrow (▼) means you're burning faster than sustainable.
+The pace marker (┃) on the usage bars shows where you *should* be if you spread usage evenly across the window. Green arrow (▲) means you have budget to spare, red arrow (▼) means you're burning faster than sustainable.
 
 ## Install
 
