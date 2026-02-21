@@ -12,7 +12,7 @@ A heads-up display for Claude Code. See your rate limits, model, context usage, 
 - **💰 Cost** — session spend so far
 - **📊 Context** — how much of the context window is used
 
-The pace marker (┃) on the usage bars shows where you *should* be if you spread usage evenly across the window. Red means you're consuming over pace, green means you have budget to spare.
+The pace marker (┃) on the usage bars shows where you *should* be if you spread usage evenly across the window. Red means you've front-loaded usage and have that much less to spare, green means you're under pace with extra budget saved.
 
 ## Install
 
@@ -285,7 +285,7 @@ if [ -n "$five_hour_util" ]; then
                 five_expected_remaining=$(( 100 - expected_used ))
                 deficit=$(( five_expected_remaining - five_remaining ))
                 if (( deficit > 0 )); then
-                    five_deficit_info=$(printf '\033[31m%d%% over pace\033[0m' "$deficit")
+                    five_deficit_info=$(printf '\033[31m%d%% to spare\033[0m' "$deficit")
                 elif (( deficit < 0 )); then
                     five_deficit_info=$(printf '\033[32m%d%% ahead\033[0m' "$(( -deficit ))")
                 fi
@@ -318,7 +318,7 @@ if [ -n "$seven_day_util" ]; then
                 expected_remaining=$(( 100 - expected_used ))
                 deficit=$(( expected_remaining - seven_remaining ))
                 if (( deficit > 0 )); then
-                    deficit_info=$(printf '\033[31m%d%% over pace\033[0m' "$deficit")
+                    deficit_info=$(printf '\033[31m%d%% to spare\033[0m' "$deficit")
                 elif (( deficit < 0 )); then
                     deficit_info=$(printf '\033[32m%d%% ahead\033[0m' "$(( -deficit ))")
                 fi
