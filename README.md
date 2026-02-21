@@ -2,9 +2,21 @@
 
 A heads-up display for Claude Code. See your rate limits, model, context usage, and session cost — all in the status line.
 
+![claude-hud](image.png)
+
+## What you get
+
+- **🤖 Model** — active model name, updates on every response
+- **⏱️ 5h usage** — progress bar with pace marker showing if you're ahead or behind even consumption
+- **📅 7d usage** — weekly limit with the same pace tracking
+- **💰 Cost** — session spend so far
+- **📊 Context** — how much of the context window is used
+
+The pace marker (┃) on the usage bars shows where you *should* be if you spread usage evenly across the window. Green arrow (▲) means you're ahead of pace, red arrow (▼) means you're burning faster than sustainable.
+
 ## Install
 
-Copy and paste this into Claude Code:
+Copy the prompt below and paste it into Claude Code. It contains the full source so Claude can install it directly, and you can also ask it questions about how it works, review it for security, or request changes before installing.
 
 ~~~
 Install claude-hud: a statusline for Claude Code that shows rate limits, model, context, and cost.
@@ -351,16 +363,6 @@ done
 echo -e "$output"
 ```
 ~~~
-
-## What you get
-
-- **🤖 Model** — active model name, updates on every response
-- **⏱️ 5h usage** — progress bar with pace marker showing if you're ahead or behind even consumption
-- **📅 7d usage** — weekly limit with the same pace tracking
-- **💰 Cost** — session spend so far
-- **📊 Context** — how much of the context window is used
-
-The pace marker (┃) on the usage bars shows where you *should* be if you spread usage evenly across the window. Green arrow (▲) means you're ahead of pace, red arrow (▼) means you're burning faster than sustainable.
 
 ## Requirements
 
