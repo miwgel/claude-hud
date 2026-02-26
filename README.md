@@ -6,13 +6,13 @@ A heads-up display for Claude Code. See your rate limits, model, context usage, 
 
 ## What you get
 
-- **🤖 Model** — active model name, updates on every response
-- **⏱️ 5h usage** — progress bar with pace marker showing if you're ahead or behind even consumption
-- **📅 7d usage** — weekly limit with the same pace tracking
-- **💰 Cost** — session spend so far
-- **📊 Context** — how much of the context window is used
+- **Model** — active model name
+- **5h usage** — progress bar with pace marker showing if you're ahead or behind even consumption
+- **7d usage** — weekly limit with the same pace tracking
+- **Cost** — session spend so far
+- **Context** — how much of the context window is used
 
-The pace marker (┃) on the usage bars shows where you *should* be if you spread usage evenly across the window. Red means you've front-loaded usage and have that much less to spare, green means you're under pace with extra budget saved.
+The pace marker (┃) on the usage bars shows where you *should* be if you spread usage evenly across the window.
 
 ## Install
 
@@ -181,17 +181,21 @@ parse_epoch() {
 
 # --- Smooth progress bar with fractional blocks ---
 create_progress_bar() {
-    local remaining=$1 bar_length=${2:-10} expected_remaining=${3:-}
+    local value=$1 bar_length=${2:-10} expected_remaining=${3:-} red_when_high=${4:-}
     local fracs=("█" "▉" "▊" "▋" "▌" "▍" "▎" "▏")
 
-    local total_eighths=$(( remaining * bar_length * 8 / 100 ))
+    local total_eighths=$(( value * bar_length * 8 / 100 ))
     (( total_eighths > bar_length * 8 )) && total_eighths=$(( bar_length * 8 ))
     local full=$(( total_eighths / 8 )) frac=$(( total_eighths % 8 ))
 
     # Colors
     local track='\033[48;5;238m' rst='\033[0m'
     local fill='\033[38;5;214m'
-    (( remaining <= 20 )) && fill='\033[31m'
+    if [ -n "$red_when_high" ]; then
+        (( value >= 80 )) && fill='\033[31m'
+    else
+        (( value <= 20 )) && fill='\033[31m'
+    fi
 
     # Pace marker position
     local marker_pos=-1 marker_fg=""
@@ -267,7 +271,7 @@ if [ -n "$five_hour_util" ]; then
     five_used=$(printf "%.0f" "$five_hour_util")
     five_remaining=$(( 100 - five_used ))
 
-    time_left="" five_expected_remaining="" five_deficit_info=""
+    time_left="" five_expected_remaining=""
     if [ -n "$five_hour_reset" ]; then
         reset_epoch=$(parse_epoch "$five_hour_reset")
         if [ -n "$reset_epoch" ]; then
@@ -283,23 +287,13 @@ if [ -n "$five_hour_util" ]; then
             if (( elapsed > 0 && elapsed < 18000 )); then
                 expected_used=$(( elapsed * 100 / 18000 ))
                 five_expected_remaining=$(( 100 - expected_used ))
-                deficit=$(( five_expected_remaining - five_remaining ))
-                if (( deficit > 0 )); then
-                    five_deficit_info=$(printf '\033[31m%d%% to spare\033[0m' "$deficit")
-                elif (( deficit < 0 )); then
-                    five_deficit_info=$(printf '\033[32m%d%% ahead\033[0m' "$(( -deficit ))")
-                fi
             fi
         fi
     fi
 
     five_bar=$(create_progress_bar "$five_remaining" 10 "$five_expected_remaining")
 
-    # Build display: bar + remaining + optional time + optional deficit
-    local_parts="${five_remaining}% left"
-    [ -n "$time_left" ] && local_parts="${local_parts} ${time_left}"
-    [ -n "$five_deficit_info" ] && local_parts="${local_parts} ${five_deficit_info}"
-    five_hour_info=$(printf "⏱️  5h %s %s" "$five_bar" "$local_parts")
+    five_hour_info=$(printf "⏱️  5h %s" "$five_bar")
 fi
 
 # --- 7-day bar with pace marker ---
@@ -308,7 +302,7 @@ if [ -n "$seven_day_util" ]; then
     seven_used=$(printf "%.0f" "$seven_day_util")
     seven_remaining=$(( 100 - seven_used ))
 
-    expected_remaining="" deficit_info=""
+    expected_remaining=""
     if [ -n "$seven_day_reset" ]; then
         reset_epoch=$(parse_epoch "$seven_day_reset")
         if [ -n "$reset_epoch" ]; then
@@ -316,30 +310,20 @@ if [ -n "$seven_day_util" ]; then
             if (( elapsed > 0 && elapsed < 604800 )); then
                 expected_used=$(( elapsed * 100 / 604800 ))
                 expected_remaining=$(( 100 - expected_used ))
-                deficit=$(( expected_remaining - seven_remaining ))
-                if (( deficit > 0 )); then
-                    deficit_info=$(printf '\033[31m%d%% to spare\033[0m' "$deficit")
-                elif (( deficit < 0 )); then
-                    deficit_info=$(printf '\033[32m%d%% ahead\033[0m' "$(( -deficit ))")
-                fi
             fi
         fi
     fi
 
     seven_bar=$(create_progress_bar "$seven_remaining" 10 "$expected_remaining")
-    if [ -n "$deficit_info" ]; then
-        seven_day_info=$(printf "📅 7d %s %s%% left (%s)" "$seven_bar" "$seven_remaining" "$deficit_info")
-    else
-        seven_day_info=$(printf "📅 7d %s %s%% left" "$seven_bar" "$seven_remaining")
-    fi
+    seven_day_info=$(printf "📅 7d %s" "$seven_bar")
 fi
 
 # --- Context bar ---
 context_info=""
 if [ -n "$used_percentage" ]; then
-    ctx_remaining=$(( 100 - $(printf "%.0f" "$used_percentage") ))
-    context_bar=$(create_progress_bar "$ctx_remaining" 10)
-    context_info=$(printf "📊 ctx %s %s%% left" "$context_bar" "$ctx_remaining")
+    ctx_used=$(printf "%.0f" "$used_percentage")
+    context_bar=$(create_progress_bar "$ctx_used" 10 "" 1)
+    context_info=$(printf "📊 ctx %s" "$context_bar")
 fi
 
 # --- Cost ---
